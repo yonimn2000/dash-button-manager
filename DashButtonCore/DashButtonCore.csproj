@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>YonatanMankovich.DashButtonCore</AssemblyName>
+    <Authors>Yonatan Mankovich</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DashButtonManager\DashButtonManager.csproj" />
+  </ItemGroup>
+
+</Project>
