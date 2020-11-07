@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30621.155
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashButtonManager", "DashButtonManager\DashButtonManager.csproj", "{010F0B28-B05B-46D9-B9AC-9A1453472086}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashButtonCore", "DashButtonCore\DashButtonCore.csproj", "{8A2F9440-0C89-459F-9921-4017289F8677}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashButtonCore", "DashButtonCore\DashButtonCore.csproj", "{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{010F0B28-B05B-46D9-B9AC-9A1453472086}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{010F0B28-B05B-46D9-B9AC-9A1453472086}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{010F0B28-B05B-46D9-B9AC-9A1453472086}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8A2F9440-0C89-459F-9921-4017289F8677}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A2F9440-0C89-459F-9921-4017289F8677}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8A2F9440-0C89-459F-9921-4017289F8677}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8A2F9440-0C89-459F-9921-4017289F8677}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
