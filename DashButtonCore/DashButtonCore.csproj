@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="DashButton.cs" />
     <Compile Include="DashButtonsNetwork.cs" />
+    <Compile Include="EventArguments\ExceptionThrownEventArgs.cs" />
     <Compile Include="EventArguments\ActionExceptionThrownEventArgs.cs" />
     <Compile Include="EventArguments\DashButtonClickedEventArgs.cs" />
     <Compile Include="EventArguments\NetworkListenerStartedEventArgs.cs" />

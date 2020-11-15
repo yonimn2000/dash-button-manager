@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Net.NetworkInformation;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Serialization;
 using YonatanMankovich.DashButtonCore;
 using YonatanMankovich.DashButtonCore.EventArguments;
 using YonatanMankovich.DashButtonCore.Exceptions;
@@ -13,6 +16,7 @@ namespace YonatanMankovich.DashButtonManager
     {
         private DashButtonsNetwork DashButtonsNetwork { get; } = new DashButtonsNetwork();
         private BindingList<DashButton> DashButtonsBindingList { get; }
+        private const string ButtonsTableFilePath = "DashButtons.xml";
 
         public MainForm()
         {
@@ -32,26 +36,12 @@ namespace YonatanMankovich.DashButtonManager
             DashButtonsTable.Columns.Add(testButtonColumn);
 
             DashButtonsTable.Columns["Enabled"].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            DashButtonsTable.Columns["Description"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             DashButtonsTable.Columns["MacAddress"].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            DashButtonsTable.Columns["Description"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             DashButtonsTable.Columns["ActionUrl"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-
-            // Temporary: Samples
-            DashButtonsBindingList.Add(new DashButton
-            {
-                Enabled = true,
-                Description = "Cottonelle Button; Lights On",
-                MacAddress = PhysicalAddress.Parse("6C56972901EC"),
-                ActionUrl = "http://smartdesk/rgb/set?r=255&g=255&b=255&s=5000"
-            });
-            DashButtonsBindingList.Add(new DashButton
-            {
-                Enabled = true,
-                Description = "Bounty Button; Lights Off",
-                MacAddress = PhysicalAddress.Parse("38F73D8FEA05"),
-                ActionUrl = "http://smartdesk/rgb/set?r=0&g=0&b=0&s=5000"
-            });
+            if (File.Exists(ButtonsTableFilePath))
+                LoadButtons();
         }
 
         private void OnNetworkListenerStarted(object sender, NetworkListenerStartedEventArgs e)
@@ -77,6 +67,7 @@ namespace YonatanMankovich.DashButtonManager
             DashButtonsNetwork.OnNetworkListenerStarted += OnNetworkListenerStarted;
             DashButtonsNetwork.OnDashButtonClicked += OnDashButtonClicked;
             DashButtonsNetwork.OnActionExceptionThrown += OnActionExceptionThrown;
+            DashButtonsNetwork.OnExceptionThrown += OnExceptionThrown;
 
             try
             {
@@ -89,6 +80,11 @@ namespace YonatanMankovich.DashButtonManager
             }
         }
 
+        private void OnExceptionThrown(object sender, ExceptionThrownEventArgs e)
+        {
+            AddToLog("An error has occured: " + e.Exception.Message);
+        }
+
         private void OnActionExceptionThrown(object sender, ActionExceptionThrownEventArgs e)
         {
             AddToLog($"An error has occurred while running the action: '{e.DashButton.ActionUrl}' " +
@@ -97,21 +93,44 @@ namespace YonatanMankovich.DashButtonManager
 
         private async void DashButtonsTable_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            if (e.RowIndex >= 0 && e.ColumnIndex == DashButtonsTable.Columns["Test"].Index)
             {
-                if (e.ColumnIndex == DashButtonsTable.Columns["Test"].Index)
+                DataGridViewCellCollection rowCells = DashButtonsTable.Rows[e.RowIndex].Cells;
+                string buttonDescription = rowCells["Description"].Value?.ToString();
+                string url = rowCells["ActionUrl"].Value?.ToString();
+                try
                 {
-                    string url = DashButtonsTable.Rows[e.RowIndex].Cells["ActionUrl"].Value?.ToString();
-                    try
-                    {
-                        await WebActionsHelpers.SendGetRequestAsync(url);
-                    }
-                    catch (Exception ex)
-                    {
-                        _ = Task.Run(() => AddToLog($"An error has occurred while running the action: '{url}' \n" + ex.Message));
-                    }
+                    AddToLog($"Testing action for {buttonDescription} button.");
+                    await WebActionsHelpers.SendGetRequestAsync(url);
+                }
+                catch (Exception ex)
+                {
+                    _ = Task.Run(() => AddToLog($"An error has occurred while running the action: '{url}' \n" + ex.Message));
                 }
             }
+        }
+
+        private void SaveButtons()
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(List<DashButton>));
+            XmlWriter xmlwriter = XmlWriter.Create(ButtonsTableFilePath, new XmlWriterSettings { Indent = true });
+            serializer.Serialize(xmlwriter, DashButtonsNetwork.DashButtons);
+            xmlwriter.Close();
+        }
+
+        private void LoadButtons()
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(List<DashButton>));
+            XmlReader xmlReader = XmlReader.Create(ButtonsTableFilePath);
+            foreach (DashButton dashButton in (List<DashButton>)serializer.Deserialize(xmlReader))
+                DashButtonsBindingList.Add(dashButton);
+            xmlReader.Close();
+        }
+
+        private void DashButtonsTable_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            SaveButtons();
+            AddToLog("Saved");
         }
     }
 }

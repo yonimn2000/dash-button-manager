@@ -46,6 +46,7 @@
             this.DashButtonsTable.Size = new System.Drawing.Size(800, 263);
             this.DashButtonsTable.TabIndex = 0;
             this.DashButtonsTable.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DashButtonsTable_CellContentClick);
+            this.DashButtonsTable.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.DashButtonsTable_CellEndEdit);
             // 
             // LogTB
             // 
@@ -66,7 +67,7 @@
             this.Controls.Add(this.LogTB);
             this.Controls.Add(this.DashButtonsTable);
             this.Name = "MainForm";
-            this.Text = "Form1";
+            this.Text = "Dash Button Manager";
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.DashButtonsTable)).EndInit();
             this.ResumeLayout(false);

@@ -17,6 +17,7 @@ namespace YonatanMankovich.DashButtonCore
         public event EventHandler<NetworkListenerStartedEventArgs> OnNetworkListenerStarted;
         public event EventHandler<DashButtonClickedEventArgs> OnDashButtonClicked;
         public event EventHandler<ActionExceptionThrownEventArgs> OnActionExceptionThrown;
+        public event EventHandler<ExceptionThrownEventArgs> OnExceptionThrown;
 
         private IList<string> MacAddressesOnHold { get; } = new List<string>();
 
@@ -47,7 +48,10 @@ namespace YonatanMankovich.DashButtonCore
             }
             catch (DllNotFoundException)
             {
-                throw new PcapMissingException();
+                OnExceptionThrown.Invoke(this, new ExceptionThrownEventArgs
+                {
+                    Exception = new PcapMissingException()
+                });
             }
         }
 
@@ -63,7 +67,7 @@ namespace YonatanMankovich.DashButtonCore
                 _ = Task.Delay(RepetitiveDiscoveryDelay).ContinueWith((task) => MacAddressesOnHold.Remove(packetMac.ToString()));
 
                 DashButton clickedDashButton = DashButtons
-                    .Where(b => b.MacAddress != null && b.Enabled && b.MacAddress.Equals(packetMac)).FirstOrDefault();
+                    .Where(b => b.MacAddress != null && b.Enabled && b.MacAddress.Equals(packetMac.ToString())).FirstOrDefault();
 
                 if (clickedDashButton != null)
                 {

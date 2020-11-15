@@ -1,14 +1,13 @@
 ﻿using System.ComponentModel;
-using System.Net.NetworkInformation;
 
 namespace YonatanMankovich.DashButtonCore
 {
     public class DashButton
     {
-        public bool Enabled { get; set; }
+        public bool Enabled { get; set; } = true;
         
         [DisplayName("Button MAC")]
-        public PhysicalAddress MacAddress { get; set; }
+        public string MacAddress { get; set; }
 
         [DisplayName("Dash Button Description")]
         public string Description { get; set; }
