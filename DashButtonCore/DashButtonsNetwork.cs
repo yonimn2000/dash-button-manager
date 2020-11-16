@@ -13,13 +13,14 @@ namespace YonatanMankovich.DashButtonCore
     public class DashButtonsNetwork
     {
         public IList<DashButton> DashButtons { get; } = new List<DashButton>();
-        public int RepetitiveDiscoveryDelay { get; set; } = 3000;
+        public int DuplicatePressIgnoreTime { get; set; } = 3000;
+
+        private IList<string> IgnoredDuplicateMacAddresses { get; } = new List<string>();
         public event EventHandler<NetworkListenerStartedEventArgs> OnNetworkListenerStarted;
         public event EventHandler<DashButtonClickedEventArgs> OnDashButtonClicked;
         public event EventHandler<ActionExceptionThrownEventArgs> OnActionExceptionThrown;
         public event EventHandler<ExceptionThrownEventArgs> OnExceptionThrown;
 
-        private IList<string> MacAddressesOnHold { get; } = new List<string>();
 
         public void StartListening()
         {
@@ -61,10 +62,10 @@ namespace YonatanMankovich.DashButtonCore
             PhysicalAddress packetMac = (packet as EthernetPacket).SourceHardwareAddress;
 
             // Ignore packets from the capture device and ignore repetitive mac addresses.
-            if (!packetMac.Equals(captureEventArgs.Device.MacAddress) && !MacAddressesOnHold.Contains(packetMac.ToString()))
+            if (!packetMac.Equals(captureEventArgs.Device.MacAddress) && !IgnoredDuplicateMacAddresses.Contains(packetMac.ToString()))
             {
-                MacAddressesOnHold.Add(packetMac.ToString());
-                _ = Task.Delay(RepetitiveDiscoveryDelay).ContinueWith((task) => MacAddressesOnHold.Remove(packetMac.ToString()));
+                IgnoredDuplicateMacAddresses.Add(packetMac.ToString());
+                _ = Task.Delay(DuplicatePressIgnoreTime).ContinueWith((task) => IgnoredDuplicateMacAddresses.Remove(packetMac.ToString()));
 
                 DashButton clickedDashButton = DashButtons
                     .Where(b => b.MacAddress != null && b.Enabled && b.MacAddress.Equals(packetMac.ToString())).FirstOrDefault();
