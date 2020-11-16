@@ -132,5 +132,22 @@ namespace YonatanMankovich.DashButtonManager
             SaveButtons();
             AddToLog("Saved");
         }
+
+        private void TrayNotifyIcon_MouseClick(object sender, MouseEventArgs e)
+        {
+            Show();
+            WindowState = FormWindowState.Normal;
+            TrayNotifyIcon.Visible = false;
+        }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Minimized)
+            {
+                Hide();
+                TrayNotifyIcon.Visible = true;
+                TrayNotifyIcon.ShowBalloonTip(1000);
+            }
+        }
     }
 }

@@ -28,8 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.DashButtonsTable = new System.Windows.Forms.DataGridView();
             this.LogTB = new System.Windows.Forms.TextBox();
+            this.TrayNotifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.DashButtonsTable)).BeginInit();
             this.SuspendLayout();
             // 
@@ -59,6 +62,15 @@
             this.LogTB.Size = new System.Drawing.Size(800, 145);
             this.LogTB.TabIndex = 1;
             // 
+            // TrayNotifyIcon
+            // 
+            this.TrayNotifyIcon.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            this.TrayNotifyIcon.BalloonTipText = "Working in the background now.";
+            this.TrayNotifyIcon.BalloonTipTitle = "Dash Button Manager";
+            this.TrayNotifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("TrayNotifyIcon.Icon")));
+            this.TrayNotifyIcon.Text = "Dash Button Manager";
+            this.TrayNotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TrayNotifyIcon_MouseClick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -66,9 +78,11 @@
             this.ClientSize = new System.Drawing.Size(800, 414);
             this.Controls.Add(this.LogTB);
             this.Controls.Add(this.DashButtonsTable);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.Text = "Dash Button Manager";
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.Resize += new System.EventHandler(this.MainForm_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.DashButtonsTable)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -79,6 +93,7 @@
 
         private System.Windows.Forms.DataGridView DashButtonsTable;
         private System.Windows.Forms.TextBox LogTB;
+        private System.Windows.Forms.NotifyIcon TrayNotifyIcon;
     }
 }
 
