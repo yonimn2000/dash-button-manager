@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -14,9 +15,11 @@ namespace YonatanMankovich.DashButtonManager
 {
     public partial class MainForm : Form
     {
+        public RegistryKey StartWithWindowsRegistryKey { get; } = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
         private DashButtonsNetwork DashButtonsNetwork { get; } = new DashButtonsNetwork();
         private BindingList<DashButton> DashButtonsBindingList { get; }
         private const string ButtonsTableFilePath = "DashButtons.xml";
+        private const string StartWithWindowsRegistryKeyName = "Dash Button Manager";
 
         public MainForm()
         {
@@ -64,6 +67,12 @@ namespace YonatanMankovich.DashButtonManager
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            if (StartWithWindowsRegistryKey.GetValue(StartWithWindowsRegistryKeyName) != null)
+            {
+                StartWithWindowsCB.Checked = true;
+                BeginInvoke((MethodInvoker)MinimizeToTray);
+            }
+
             DashButtonsNetwork.OnNetworkListenerStarted += OnNetworkListenerStarted;
             DashButtonsNetwork.OnDashButtonClicked += OnDashButtonClicked;
             DashButtonsNetwork.OnActionExceptionThrown += OnActionExceptionThrown;
@@ -144,10 +153,23 @@ namespace YonatanMankovich.DashButtonManager
         {
             if (WindowState == FormWindowState.Minimized)
             {
-                Hide();
-                TrayNotifyIcon.Visible = true;
+                MinimizeToTray();
                 TrayNotifyIcon.ShowBalloonTip(1000);
             }
+        }
+
+        private void MinimizeToTray()
+        {
+            Hide();
+            TrayNotifyIcon.Visible = true;
+        }
+
+        private void StartWithWindowsCB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (StartWithWindowsCB.Checked)
+                StartWithWindowsRegistryKey.SetValue(StartWithWindowsRegistryKeyName, Application.ExecutablePath);
+            else
+                StartWithWindowsRegistryKey.DeleteValue(StartWithWindowsRegistryKeyName, false);
         }
     }
 }
