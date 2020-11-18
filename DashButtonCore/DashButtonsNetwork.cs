@@ -12,16 +12,27 @@ namespace YonatanMankovich.DashButtonCore
 {
     public class DashButtonsNetwork
     {
+        /// <summary> The collection of dash buttons. Buttons can be added to this list while the network listener is running. </summary>
         public IList<DashButton> DashButtons { get; } = new List<DashButton>();
+
+        /// <summary> The time during which repeated button presses should be ignored. </summary>
         public int DuplicatePressIgnoreTime { get; set; } = 3000;
 
-        private IList<string> IgnoredDuplicateMacAddresses { get; } = new List<string>();
+        /// <summary> Called when a network listener is started. </summary>
         public event EventHandler<NetworkListenerStartedEventArgs> OnNetworkListenerStarted;
+
+        /// <summary> Called when a dash button is clicked. </summary>
         public event EventHandler<DashButtonClickedEventArgs> OnDashButtonClicked;
-        public event EventHandler<ActionExceptionThrownEventArgs> OnActionExceptionThrown;
+
+        /// <summary> Called when an exception is thrown. </summary>
         public event EventHandler<ExceptionThrownEventArgs> OnExceptionThrown;
 
+        /// <summary> Called when an exception is thrown when performing a button action. </summary>
+        public event EventHandler<ActionExceptionThrownEventArgs> OnActionExceptionThrown;
 
+        private ICollection<string> IgnoredDuplicateMacAddresses { get; } = new List<string>();
+
+        /// <summary> Starts listening for dash button presses on all network adapters. </summary>
         public void StartListening()
         {
             try // Try retrieving the device list.
@@ -81,7 +92,7 @@ namespace YonatanMankovich.DashButtonCore
 
                     try
                     {
-                        await WebActionsHelpers.SendGetRequestAsync(clickedDashButton.ActionUrl);
+                        await WebActionHelpers.SendGetRequestAsync(clickedDashButton.ActionUrl);
                     }
                     catch (Exception e)
                     {

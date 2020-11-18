@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\YonatanMankovich.DashButtonCore.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -70,7 +71,7 @@
     <Compile Include="Exceptions\NoNetworkInterfacesException.cs" />
     <Compile Include="Exceptions\PcapMissingException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WebActionsHelpers.cs" />
+    <Compile Include="WebActionHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

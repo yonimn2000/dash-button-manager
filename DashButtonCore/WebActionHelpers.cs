@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 
 namespace YonatanMankovich.DashButtonCore
 {
-    public static class WebActionsHelpers
+    /// <summary> Provides helper methods to send HTTP requests. </summary>
+    public static class WebActionHelpers
     {
+        /// <summary> Sends an asynchronous HTTP GET request to the specified URL. </summary>
         public async static Task SendGetRequestAsync(string url)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);

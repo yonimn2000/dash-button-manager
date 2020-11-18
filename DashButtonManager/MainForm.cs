@@ -15,7 +15,7 @@ namespace YonatanMankovich.DashButtonManager
 {
     public partial class MainForm : Form
     {
-        public RegistryKey StartWithWindowsRegistryKey { get; } = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+        private RegistryKey StartWithWindowsRegistryKey { get; } = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
         private DashButtonsNetwork DashButtonsNetwork { get; } = new DashButtonsNetwork();
         private BindingList<DashButton> DashButtonsBindingList { get; }
         private const string ButtonsTableFilePath = "DashButtons.xml";
@@ -110,7 +110,7 @@ namespace YonatanMankovich.DashButtonManager
                 try
                 {
                     AddToLog($"Testing action for {buttonDescription} button.");
-                    await WebActionsHelpers.SendGetRequestAsync(url);
+                    await WebActionHelpers.SendGetRequestAsync(url);
                 }
                 catch (Exception ex)
                 {
