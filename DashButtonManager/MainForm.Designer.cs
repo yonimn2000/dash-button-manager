@@ -35,6 +35,7 @@
             this.TrayNotifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.OptionsGB = new System.Windows.Forms.GroupBox();
             this.StartWithWindowsCB = new System.Windows.Forms.CheckBox();
+            this.LogAllMacsCB = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.DashButtonsTable)).BeginInit();
             this.OptionsGB.SuspendLayout();
             this.SuspendLayout();
@@ -78,6 +79,7 @@
             // OptionsGB
             // 
             this.OptionsGB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.OptionsGB.Controls.Add(this.LogAllMacsCB);
             this.OptionsGB.Controls.Add(this.StartWithWindowsCB);
             this.OptionsGB.Location = new System.Drawing.Point(664, 183);
             this.OptionsGB.Name = "OptionsGB";
@@ -96,6 +98,17 @@
             this.StartWithWindowsCB.Text = "Start with Windows";
             this.StartWithWindowsCB.UseVisualStyleBackColor = true;
             this.StartWithWindowsCB.CheckedChanged += new System.EventHandler(this.StartWithWindowsCB_CheckedChanged);
+            // 
+            // LogAllMacsCB
+            // 
+            this.LogAllMacsCB.AutoSize = true;
+            this.LogAllMacsCB.Location = new System.Drawing.Point(6, 42);
+            this.LogAllMacsCB.Name = "LogAllMacsCB";
+            this.LogAllMacsCB.Size = new System.Drawing.Size(89, 17);
+            this.LogAllMacsCB.TabIndex = 1;
+            this.LogAllMacsCB.Text = "Log All MACs";
+            this.LogAllMacsCB.UseVisualStyleBackColor = true;
+            this.LogAllMacsCB.CheckedChanged += new System.EventHandler(this.LogAllMacsCB_CheckedChanged);
             // 
             // MainForm
             // 
@@ -125,6 +138,7 @@
         private System.Windows.Forms.NotifyIcon TrayNotifyIcon;
         private System.Windows.Forms.GroupBox OptionsGB;
         private System.Windows.Forms.CheckBox StartWithWindowsCB;
+        private System.Windows.Forms.CheckBox LogAllMacsCB;
     }
 }
 

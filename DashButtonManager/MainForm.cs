@@ -15,8 +15,9 @@ namespace YonatanMankovich.DashButtonManager
 {
     public partial class MainForm : Form
     {
-        private RegistryKey StartWithWindowsRegistryKey { get; } = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
-        private DashButtonListener DashButtonsNetwork { get; } = new DashButtonListener();
+        private RegistryKey StartWithWindowsRegistryKey { get; } 
+            = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+        private DashButtonListener DashButtonListener { get; } = new DashButtonListener();
         private BindingList<DashButton> DashButtonsBindingList { get; }
         private const string ButtonsTableFilePath = "DashButtons.xml";
         private const string StartWithWindowsRegistryKeyName = "Dash Button Manager";
@@ -25,7 +26,7 @@ namespace YonatanMankovich.DashButtonManager
         {
             InitializeComponent();
 
-            DashButtonsBindingList = new BindingList<DashButton>(DashButtonsNetwork.DashButtons);
+            DashButtonsBindingList = new BindingList<DashButton>(DashButtonListener.DashButtons);
             DashButtonsTable.DataSource = new BindingSource(DashButtonsBindingList, null);
 
             DataGridViewButtonColumn testButtonColumn = new DataGridViewButtonColumn
@@ -54,7 +55,8 @@ namespace YonatanMankovich.DashButtonManager
 
         private void OnDashButtonClicked(object sender, DashButtonClickedEventArgs e)
         {
-            AddToLog($"Button clicked: {e.DashButton.Description} on {e.CaptureDeviceDescription} ({e.CaptureDeviceMacAddress})");
+            AddToLog($"Button clicked: {e.DashButton.Description} ({e.DashButton.MacAddress}) " +
+                $"on {e.CaptureDeviceDescription} ({e.CaptureDeviceMacAddress})");
         }
 
         private void AddToLog(string message)
@@ -73,15 +75,15 @@ namespace YonatanMankovich.DashButtonManager
                 BeginInvoke((MethodInvoker)MinimizeToTray);
             }
 
-            DashButtonsNetwork.OnNetworkListenerStarted += OnNetworkListenerStarted;
-            DashButtonsNetwork.OnDashButtonClicked += OnDashButtonClicked;
-            DashButtonsNetwork.OnActionExceptionThrown += OnActionExceptionThrown;
-            DashButtonsNetwork.OnExceptionThrown += OnExceptionThrown;
+            DashButtonListener.OnNetworkListenerStarted += OnNetworkListenerStarted;
+            DashButtonListener.OnDashButtonClicked += OnDashButtonClicked;
+            DashButtonListener.OnActionExceptionThrown += OnActionExceptionThrown;
+            DashButtonListener.OnExceptionThrown += OnExceptionThrown;
 
             try
             {
                 AddToLog("Starting network listeners...");
-                Task.Run(() => DashButtonsNetwork.Start());
+                Task.Run(() => DashButtonListener.Start());
             }
             catch (DashButtonCoreException dbce)
             {
@@ -91,7 +93,7 @@ namespace YonatanMankovich.DashButtonManager
 
         private void OnExceptionThrown(object sender, ExceptionThrownEventArgs e)
         {
-            AddToLog("An error has occured: " + e.Exception.Message);
+            AddToLog("An error has occurred: " + e.Exception.Message);
         }
 
         private void OnActionExceptionThrown(object sender, ActionExceptionThrownEventArgs e)
@@ -123,7 +125,7 @@ namespace YonatanMankovich.DashButtonManager
         {
             XmlSerializer serializer = new XmlSerializer(typeof(List<DashButton>));
             XmlWriter xmlwriter = XmlWriter.Create(ButtonsTableFilePath, new XmlWriterSettings { Indent = true });
-            serializer.Serialize(xmlwriter, DashButtonsNetwork.DashButtons);
+            serializer.Serialize(xmlwriter, DashButtonListener.DashButtons);
             xmlwriter.Close();
         }
 
@@ -139,7 +141,7 @@ namespace YonatanMankovich.DashButtonManager
         private void DashButtonsTable_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             SaveButtons();
-            AddToLog("Saved");
+            AddToLog("Saved dash buttons table.");
         }
 
         private void TrayNotifyIcon_MouseClick(object sender, MouseEventArgs e)
@@ -170,6 +172,19 @@ namespace YonatanMankovich.DashButtonManager
                 StartWithWindowsRegistryKey.SetValue(StartWithWindowsRegistryKeyName, Application.ExecutablePath);
             else
                 StartWithWindowsRegistryKey.DeleteValue(StartWithWindowsRegistryKeyName, false);
+        }
+
+        private void LogAllMacsCB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (LogAllMacsCB.Checked)
+                DashButtonListener.OnMacAddressCaptured += OnMacAddressCaptured;
+            else
+                DashButtonListener.OnMacAddressCaptured -= OnMacAddressCaptured;
+        }
+
+        private void OnMacAddressCaptured(object sender, MacAddressCapturedEventArgs e)
+        {
+            AddToLog($"MAC address captured: {e.MacAddress} on {e.CaptureDeviceDescription} ({e.CaptureDeviceMacAddress})");
         }
     }
 }
