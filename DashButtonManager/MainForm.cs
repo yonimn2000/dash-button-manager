@@ -16,7 +16,7 @@ namespace YonatanMankovich.DashButtonManager
     public partial class MainForm : Form
     {
         private RegistryKey StartWithWindowsRegistryKey { get; } = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
-        private DashButtonsNetwork DashButtonsNetwork { get; } = new DashButtonsNetwork();
+        private DashButtonListener DashButtonsNetwork { get; } = new DashButtonListener();
         private BindingList<DashButton> DashButtonsBindingList { get; }
         private const string ButtonsTableFilePath = "DashButtons.xml";
         private const string StartWithWindowsRegistryKeyName = "Dash Button Manager";
@@ -81,7 +81,7 @@ namespace YonatanMankovich.DashButtonManager
             try
             {
                 AddToLog("Starting network listeners...");
-                Task.Run(() => DashButtonsNetwork.StartListening());
+                Task.Run(() => DashButtonsNetwork.Start());
             }
             catch (DashButtonCoreException dbce)
             {
