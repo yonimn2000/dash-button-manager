@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashButtonManager", "DashBu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashButtonCore", "DashButtonCore\DashButtonCore.csproj", "{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DashButtonService", "DashButtonService\DashButtonService.csproj", "{8830D0A4-61F4-4A54-AF45-BEC975852235}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44858552-DC2F-40A8-AE31-1CDE3FEE2DD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8830D0A4-61F4-4A54-AF45-BEC975852235}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8830D0A4-61F4-4A54-AF45-BEC975852235}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8830D0A4-61F4-4A54-AF45-BEC975852235}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8830D0A4-61F4-4A54-AF45-BEC975852235}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

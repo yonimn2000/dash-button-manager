@@ -19,7 +19,8 @@ namespace YonatanMankovich.DashButtonCore
         /// <summary> Called when an exception is thrown when performing a button action. </summary>
         public event EventHandler<ActionExceptionThrownEventArgs> OnActionExceptionThrown;
 
-        private const string saveLoadButtonsFile = "DashButtons.xml";
+        /// <summary> The file name for the saved buttons. </summary>
+        public static readonly string DashButtonsFilePath = AppDomain.CurrentDomain.BaseDirectory + "DashButtons.xml";
 
         public DashButtonListener()
         {
@@ -60,7 +61,7 @@ namespace YonatanMankovich.DashButtonCore
         public void SaveButtons()
         {
             XmlSerializer serializer = new XmlSerializer(typeof(List<DashButton>));
-            XmlWriter xmlwriter = XmlWriter.Create(saveLoadButtonsFile, new XmlWriterSettings { Indent = true });
+            XmlWriter xmlwriter = XmlWriter.Create(DashButtonsFilePath, new XmlWriterSettings { Indent = true });
             serializer.Serialize(xmlwriter, DashButtons);
             xmlwriter.Close();
         }
@@ -68,11 +69,11 @@ namespace YonatanMankovich.DashButtonCore
         /// <summary> Loads all dash buttons from the saved file if it exists. </summary>
         public void LoadButtons()
         {
-            if (File.Exists(saveLoadButtonsFile))
+            if (File.Exists(DashButtonsFilePath))
             {
                 DashButtons.Clear();
                 XmlSerializer serializer = new XmlSerializer(typeof(List<DashButton>));
-                XmlReader xmlReader = XmlReader.Create(saveLoadButtonsFile);
+                XmlReader xmlReader = XmlReader.Create(DashButtonsFilePath);
                 foreach (DashButton dashButton in (List<DashButton>)serializer.Deserialize(xmlReader))
                     DashButtons.Add(dashButton);
                 xmlReader.Close(); 
