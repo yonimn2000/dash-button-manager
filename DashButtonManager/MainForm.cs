@@ -1,12 +1,8 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
-using System.Xml.Serialization;
 using YonatanMankovich.DashButtonCore;
 using YonatanMankovich.DashButtonCore.EventArguments;
 using YonatanMankovich.DashButtonCore.Exceptions;
@@ -19,13 +15,13 @@ namespace YonatanMankovich.DashButtonManager
             = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
         private DashButtonListener DashButtonListener { get; } = new DashButtonListener();
         private BindingList<DashButton> DashButtonsBindingList { get; }
-        private const string ButtonsTableFilePath = "DashButtons.xml";
         private const string StartWithWindowsRegistryKeyName = "Dash Button Manager";
 
         public MainForm()
         {
             InitializeComponent();
 
+            DashButtonListener.LoadButtons();
             DashButtonsBindingList = new BindingList<DashButton>(DashButtonListener.DashButtons);
             DashButtonsTable.DataSource = new BindingSource(DashButtonsBindingList, null);
 
@@ -43,9 +39,6 @@ namespace YonatanMankovich.DashButtonManager
             DashButtonsTable.Columns["MacAddress"].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             DashButtonsTable.Columns["Description"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             DashButtonsTable.Columns["ActionUrl"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            if (File.Exists(ButtonsTableFilePath))
-                LoadButtons();
         }
 
         private void OnNetworkListenerStarted(object sender, NetworkListenerStartedEventArgs e)
@@ -121,26 +114,9 @@ namespace YonatanMankovich.DashButtonManager
             }
         }
 
-        private void SaveButtons()
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(List<DashButton>));
-            XmlWriter xmlwriter = XmlWriter.Create(ButtonsTableFilePath, new XmlWriterSettings { Indent = true });
-            serializer.Serialize(xmlwriter, DashButtonListener.DashButtons);
-            xmlwriter.Close();
-        }
-
-        private void LoadButtons()
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(List<DashButton>));
-            XmlReader xmlReader = XmlReader.Create(ButtonsTableFilePath);
-            foreach (DashButton dashButton in (List<DashButton>)serializer.Deserialize(xmlReader))
-                DashButtonsBindingList.Add(dashButton);
-            xmlReader.Close();
-        }
-
         private void DashButtonsTable_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            SaveButtons();
+            DashButtonListener.SaveButtons();
             AddToLog("Saved dash buttons table.");
         }
 
