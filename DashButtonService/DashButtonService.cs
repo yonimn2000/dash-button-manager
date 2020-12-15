@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.ServiceProcess;
 using System.Threading;
@@ -31,7 +32,7 @@ namespace YonatanMankovich.DashButtonService
                 try
                 {
                     DashButtonListener.LoadButtons();
-                    AddToLog("Reloaded dash buttons file.");
+                    EventLog.WriteEntry("Reloaded dash buttons file.");
                 }
                 catch (IOException) { } // Ignore if the file is in use.
             }
@@ -39,16 +40,15 @@ namespace YonatanMankovich.DashButtonService
 
         protected override void OnStart(string[] args)
         {
-            AddToLog("////////////////////////////////");
-            AddToLog("Starting network listener...");
+            EventLog.WriteEntry("Starting network listener...");
             DashButtonListener.Start();
-            AddToLog(DashButtonListener.DashButtons.Count + " buttons registered.");
-            AddToLog("Service started.");
+            EventLog.WriteEntry(DashButtonListener.DashButtons.Count + " buttons registered.");
+            EventLog.WriteEntry("Service started.");
         }
 
         protected override void OnStop()
         {
-            AddToLog("Service stopped.");
+            EventLog.WriteEntry("Service stopped.");
         }
 
         public void TestInConsole(string[] args)
@@ -65,29 +65,24 @@ namespace YonatanMankovich.DashButtonService
 
         private void DashButtonListener_OnExceptionThrown(object sender, ExceptionThrownEventArgs e)
         {
-            AddToLog("An error has occurred: " + e.Exception.Message);
+            EventLog.WriteEntry("An error has occurred: " + e.Exception.Message, EventLogEntryType.Error);
         }
 
         private void DashButtonListener_OnActionExceptionThrown(object sender, ActionExceptionThrownEventArgs e)
         {
-            AddToLog($"An error has occurred while running the action: '{e.DashButton.ActionUrl}' " +
-                $"for button '{e.DashButton.Description}'. \n{e.Exception.Message}");
+            EventLog.WriteEntry($"An error has occurred while running the action: '{e.DashButton.ActionUrl}' " +
+                $"for button '{e.DashButton.Description}'. \n{e.Exception.Message}", EventLogEntryType.Error);
         }
 
         private void DashButtonListener_OnDashButtonClicked(object sender, DashButtonClickedEventArgs e)
         {
-            AddToLog($"Button clicked: {e.DashButton.Description} ({e.DashButton.MacAddress}) " +
+            EventLog.WriteEntry($"Button clicked: {e.DashButton.Description} ({e.DashButton.MacAddress}) " +
                 $"on {e.CaptureDeviceDescription} ({e.CaptureDeviceMacAddress})");
         }
 
         private void DashButtonListener_OnNetworkListenerStarted(object sender, NetworkListenerStartedEventArgs e)
         {
-            AddToLog($"Started listening on {e.ListenerDevice} ({e.ListenerDeviceMacAddress})");
-        }
-
-        private void AddToLog(string message)
-        {
-            File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "Log.txt", $"[{DateTime.Now.ToShortDateString()} {DateTime.Now.ToLongTimeString()}] " + message + Environment.NewLine);
+            EventLog.WriteEntry($"Started listening on {e.ListenerDevice} ({e.ListenerDeviceMacAddress})");
         }
     }
 }
