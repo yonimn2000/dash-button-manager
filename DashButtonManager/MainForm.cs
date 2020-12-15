@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using YonatanMankovich.DashButtonCore;
@@ -20,6 +21,9 @@ namespace YonatanMankovich.DashButtonManager
         public MainForm()
         {
             InitializeComponent();
+
+            Size = Properties.Settings.Default.FormSize;
+            HorizontalSplitContainer.SplitterDistance = Properties.Settings.Default.SplitterDistance;
 
             DashButtonListener.LoadButtons();
             DashButtonsBindingList = new BindingList<DashButton>(DashButtonListener.DashButtons);
@@ -161,6 +165,13 @@ namespace YonatanMankovich.DashButtonManager
         private void OnMacAddressCaptured(object sender, MacAddressCapturedEventArgs e)
         {
             AddToLog($"MAC address captured: {e.MacAddress} on {e.CaptureDeviceDescription} ({e.CaptureDeviceMacAddress})");
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Properties.Settings.Default.FormSize = new Size(Width, Height);
+            Properties.Settings.Default.SplitterDistance = HorizontalSplitContainer.SplitterDistance;
+            Properties.Settings.Default.Save();
         }
     }
 }
