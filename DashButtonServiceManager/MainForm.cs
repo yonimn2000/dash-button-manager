@@ -1,7 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
+using System.Linq;
+using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using YonatanMankovich.DashButtonCore;
@@ -10,18 +13,21 @@ namespace YonatanMankovich.DashButtonServiceManager
 {
     public partial class MainForm : Form
     {
-        private EventLogWatcher EventLogWatcher { get; } 
-            = new EventLogWatcher(new EventLogQuery("Application", PathType.LogName, "*[System/Provider/@Name=\"DashButtonService\"]"));
+        private const string DashButtonServiceName = "DashButtonService";
+        private EventLogWatcher EventLogWatcher { get; }
+            = new EventLogWatcher(new EventLogQuery("Application", PathType.LogName, $"*[System/Provider/@Name=\"{DashButtonServiceName}\"]"));
         private DashButtonListener DashButtonListener { get; } = new DashButtonListener();
         private BindingList<DashButton> DashButtonsBindingList { get; }
 
         public MainForm()
         {
             InitializeComponent();
-            SubscribeToEventLog();
 
             Size = Properties.Settings.Default.FormSize;
             HorizontalSplitContainer.SplitterDistance = Properties.Settings.Default.SplitterDistance;
+
+            EventLogWatcher.EventRecordWritten += EventRecordWritten;
+            EventLogWatcher.Enabled = true;
 
             DashButtonListener.LoadButtons();
             DashButtonsBindingList = new BindingList<DashButton>(DashButtonListener.DashButtons);
@@ -43,11 +49,32 @@ namespace YonatanMankovich.DashButtonServiceManager
             DashButtonsTable.Columns["ActionUrl"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
         }
 
-        private void Log(string message)
+        private string GetServiceStatus()
+        {
+            switch (new ServiceController(DashButtonServiceName).Status)
+            {
+                case ServiceControllerStatus.Running:
+                    return "Running";
+                case ServiceControllerStatus.Stopped:
+                    return "Stopped";
+                case ServiceControllerStatus.Paused:
+                    return "Paused";
+                case ServiceControllerStatus.StopPending:
+                    return "Stopping";
+                case ServiceControllerStatus.StartPending:
+                    return "Starting";
+                default:
+                    return "Changing";
+            }
+        }
+
+        private void Log(string message) => Log(message, DateTime.Now);
+
+        private void Log(string message, DateTime dateTime)
         {
             BeginInvoke((MethodInvoker)delegate
             {
-                LogTB.AppendText($"[{DateTime.Now.ToShortDateString()} {DateTime.Now.ToLongTimeString()}] " 
+                LogTB.AppendText($"[{dateTime.ToShortDateString()} {dateTime.ToLongTimeString()}] "
                     + message + Environment.NewLine);
             });
         }
@@ -77,20 +104,7 @@ namespace YonatanMankovich.DashButtonServiceManager
             Log("Saved dash buttons table.");
         }
 
-        private void SubscribeToEventLog()
-        {
-            try
-            {
-                EventLogWatcher.EventRecordWritten += new EventHandler<EventRecordWrittenEventArgs>(EventLogEventRead);
-                EventLogWatcher.Enabled = true;
-            }
-            catch (EventLogReadingException e)
-            {
-                Log("Error reading the log: " + e.Message);
-            }
-        }
-
-        private void EventLogEventRead(object obj, EventRecordWrittenEventArgs arg)
+        private void EventRecordWritten(object obj, EventRecordWrittenEventArgs arg)
         {
             Log(arg.EventRecord.FormatDescription());
         }
@@ -100,6 +114,25 @@ namespace YonatanMankovich.DashButtonServiceManager
             Properties.Settings.Default.FormSize = new Size(Width, Height);
             Properties.Settings.Default.SplitterDistance = HorizontalSplitContainer.SplitterDistance;
             Properties.Settings.Default.Save();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            _ = Task.Run(() =>
+            {
+                int days = 7;
+                Log($"Reading events from the last {days} days...");
+                EventLog log = new EventLog("Application");
+                foreach (var eventEntry in log.Entries.Cast<EventLogEntry>()
+                    .Where(x => x.Source.Equals(DashButtonServiceName) && x.TimeGenerated > DateTime.Now.AddDays(-days))
+                    .Select(x => new
+                    {
+                        x.Message,
+                        x.TimeGenerated
+                    }))
+                    Log(eventEntry.Message, eventEntry.TimeGenerated);
+                Log("Current service status: " + GetServiceStatus());
+            });
         }
     }
 }

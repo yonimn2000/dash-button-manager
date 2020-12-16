@@ -91,6 +91,7 @@
             this.Name = "MainForm";
             this.Text = "Dash Button Service Manager";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
+            this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.DashButtonsTable)).EndInit();
             this.HorizontalSplitContainer.Panel1.ResumeLayout(false);
             this.HorizontalSplitContainer.Panel2.ResumeLayout(false);
