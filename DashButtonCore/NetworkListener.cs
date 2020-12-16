@@ -53,10 +53,7 @@ namespace YonatanMankovich.DashButtonCore
             }
             catch (DllNotFoundException)
             {
-                OnExceptionThrown?.Invoke(this, new ExceptionThrownEventArgs
-                {
-                    Exception = new PcapMissingException()
-                });
+                throw new PcapMissingException();
             }
         }
 

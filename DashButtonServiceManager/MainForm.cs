@@ -3,28 +3,33 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using YonatanMankovich.DashButtonCore;
+using YonatanMankovich.DashButtonServiceManager.Properties;
 
 namespace YonatanMankovich.DashButtonServiceManager
 {
     public partial class MainForm : Form
     {
         private const string DashButtonServiceName = "DashButtonService";
-        private EventLogWatcher EventLogWatcher { get; }
-            = new EventLogWatcher(new EventLogQuery("Application", PathType.LogName, $"*[System/Provider/@Name=\"{DashButtonServiceName}\"]"));
+        private Settings FormSettings { get; } = Settings.Default;
         private DashButtonListener DashButtonListener { get; } = new DashButtonListener();
         private BindingList<DashButton> DashButtonsBindingList { get; }
+        private EventLogWatcher EventLogWatcher { get; }
+            = new EventLogWatcher(new EventLogQuery("Application", PathType.LogName,
+                $"*[System/Provider/@Name=\"{DashButtonServiceName}\"]"));
 
         public MainForm()
         {
             InitializeComponent();
 
-            Size = Properties.Settings.Default.FormSize;
-            HorizontalSplitContainer.SplitterDistance = Properties.Settings.Default.SplitterDistance;
+            Size = FormSettings.FormSize;
+            HorizontalSplitContainer.SplitterDistance = FormSettings.SplitterDistance;
 
             EventLogWatcher.EventRecordWritten += EventRecordWritten;
             EventLogWatcher.Enabled = true;
@@ -47,6 +52,19 @@ namespace YonatanMankovich.DashButtonServiceManager
             DashButtonsTable.Columns["MacAddress"].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             DashButtonsTable.Columns["Description"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             DashButtonsTable.Columns["ActionUrl"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+        }
+
+        private bool IsDirectoryWritable(string directoryPath)
+        {
+            try
+            {
+                using (FileStream fs = File.Create(Path.Combine(directoryPath, Path.GetRandomFileName()), 1, FileOptions.DeleteOnClose)) { }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private string GetServiceStatus()
@@ -86,14 +104,38 @@ namespace YonatanMankovich.DashButtonServiceManager
                 DataGridViewCellCollection rowCells = DashButtonsTable.Rows[e.RowIndex].Cells;
                 string buttonDescription = rowCells["Description"].Value?.ToString();
                 string url = rowCells["ActionUrl"].Value?.ToString();
-                try
+                if (!string.IsNullOrWhiteSpace(url))
                 {
-                    Log($"Testing action for {buttonDescription} button.");
-                    await WebActionHelpers.SendGetRequestAsync(url);
+                    try
+                    {
+                        Log($"Testing action for {buttonDescription} button.");
+                        await WebActionHelpers.SendGetRequestAsync(url);
+                    }
+                    catch (Exception ex)
+                    {
+                        _ = Task.Run(() => Log($"An error has occurred while running the action: '{url}' \n" + ex.Message));
+                    }
                 }
-                catch (Exception ex)
+            }
+            else if (DashButtonsTable.ReadOnly)
+            {
+                DialogResult dialogResult = MessageBox.Show("You need Administrative rights in order to modify values in this table. " +
+                    "Would you like to restart the program with Administrative rights?",
+                    "Missing Rights", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (dialogResult == DialogResult.Yes)
                 {
-                    _ = Task.Run(() => Log($"An error has occurred while running the action: '{url}' \n" + ex.Message));
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo()
+                        {
+                            FileName = Assembly.GetExecutingAssembly().Location,
+                            UseShellExecute = true,
+                            Verb = "runas"
+                        });
+                        Application.Exit();
+                    }
+                    catch (Win32Exception) { }
                 }
             }
         }
@@ -111,13 +153,15 @@ namespace YonatanMankovich.DashButtonServiceManager
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Properties.Settings.Default.FormSize = new Size(Width, Height);
-            Properties.Settings.Default.SplitterDistance = HorizontalSplitContainer.SplitterDistance;
-            Properties.Settings.Default.Save();
+            FormSettings.FormSize = new Size(Width, Height);
+            FormSettings.SplitterDistance = HorizontalSplitContainer.SplitterDistance;
+            FormSettings.Save();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            if (!IsDirectoryWritable(AppDomain.CurrentDomain.BaseDirectory))
+                DashButtonsTable.ReadOnly = true;
             _ = Task.Run(() =>
             {
                 int days = 7;
@@ -130,8 +174,12 @@ namespace YonatanMankovich.DashButtonServiceManager
                         x.Message,
                         x.TimeGenerated
                     }))
+                {
                     Log(eventEntry.Message, eventEntry.TimeGenerated);
+                }
                 Log("Current service status: " + GetServiceStatus());
+                if (DashButtonsTable.ReadOnly)
+                    Log("Data editing was disabled because Dash Button Service Manager was started using a non-administrator account.");
             });
         }
     }

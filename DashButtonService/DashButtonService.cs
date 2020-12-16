@@ -5,6 +5,7 @@ using System.ServiceProcess;
 using System.Threading;
 using YonatanMankovich.DashButtonCore;
 using YonatanMankovich.DashButtonCore.EventArguments;
+using YonatanMankovich.DashButtonCore.Exceptions;
 
 namespace YonatanMankovich.DashButtonService
 {
@@ -41,14 +42,15 @@ namespace YonatanMankovich.DashButtonService
         protected override void OnStart(string[] args)
         {
             EventLog.WriteEntry("Starting network listener...");
-            DashButtonListener.Start();
-            EventLog.WriteEntry(DashButtonListener.DashButtons.Count + " buttons registered.");
-            EventLog.WriteEntry("Service started.");
-        }
-
-        protected override void OnStop()
-        {
-            EventLog.WriteEntry("Service stopped.");
+            try
+            {
+                DashButtonListener.Start();
+                EventLog.WriteEntry(DashButtonListener.DashButtons.Count + " buttons registered.");
+            }
+            catch (DashButtonCoreException e)
+            {
+                OnExceptionThrown(e);
+            }
         }
 
         public void TestInConsole(string[] args)
@@ -65,7 +67,14 @@ namespace YonatanMankovich.DashButtonService
 
         private void DashButtonListener_OnExceptionThrown(object sender, ExceptionThrownEventArgs e)
         {
-            EventLog.WriteEntry("An error has occurred: " + e.Exception.Message, EventLogEntryType.Error);
+            OnExceptionThrown(e.Exception);
+        }
+
+        private void OnExceptionThrown(Exception exception)
+        {
+            EventLog.WriteEntry("An error has occurred: " + exception.Message, EventLogEntryType.Error);
+            if (exception is PcapMissingException || exception is NoNetworkInterfacesException)
+                ThreadPool.QueueUserWorkItem(_ => Stop());
         }
 
         private void DashButtonListener_OnActionExceptionThrown(object sender, ActionExceptionThrownEventArgs e)

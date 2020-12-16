@@ -48,7 +48,7 @@
             this.DashButtonsTable.Location = new System.Drawing.Point(0, 0);
             this.DashButtonsTable.Name = "DashButtonsTable";
             this.DashButtonsTable.Size = new System.Drawing.Size(784, 225);
-            this.DashButtonsTable.TabIndex = 0;
+            this.DashButtonsTable.TabIndex = 1;
             this.DashButtonsTable.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DashButtonsTable_CellContentClick);
             this.DashButtonsTable.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.DashButtonsTable_CellEndEdit);
             // 
@@ -61,7 +61,7 @@
             this.LogTB.ReadOnly = true;
             this.LogTB.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.LogTB.Size = new System.Drawing.Size(784, 132);
-            this.LogTB.TabIndex = 1;
+            this.LogTB.TabIndex = 0;
             // 
             // HorizontalSplitContainer
             // 

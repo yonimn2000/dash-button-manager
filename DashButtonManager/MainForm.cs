@@ -7,23 +7,25 @@ using System.Windows.Forms;
 using YonatanMankovich.DashButtonCore;
 using YonatanMankovich.DashButtonCore.EventArguments;
 using YonatanMankovich.DashButtonCore.Exceptions;
+using YonatanMankovich.DashButtonManager.Properties;
 
 namespace YonatanMankovich.DashButtonManager
 {
     public partial class MainForm : Form
     {
-        private RegistryKey StartWithWindowsRegistryKey { get; } 
-            = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
         private DashButtonListener DashButtonListener { get; } = new DashButtonListener();
+        private Settings FormSettings { get; } = Settings.Default;
         private BindingList<DashButton> DashButtonsBindingList { get; }
         private const string StartWithWindowsRegistryKeyName = "Dash Button Manager";
+        private RegistryKey StartWithWindowsRegistryKey { get; }
+            = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
 
         public MainForm()
         {
             InitializeComponent();
 
-            Size = Properties.Settings.Default.FormSize;
-            HorizontalSplitContainer.SplitterDistance = Properties.Settings.Default.SplitterDistance;
+            Size = FormSettings.FormSize;
+            HorizontalSplitContainer.SplitterDistance = FormSettings.SplitterDistance;
 
             DashButtonListener.LoadButtons();
             DashButtonsBindingList = new BindingList<DashButton>(DashButtonListener.DashButtons);
@@ -47,20 +49,21 @@ namespace YonatanMankovich.DashButtonManager
 
         private void OnNetworkListenerStarted(object sender, NetworkListenerStartedEventArgs e)
         {
-            AddToLog($"Started listening on {e.ListenerDevice} ({e.ListenerDeviceMacAddress})");
+            Log($"Started listening on {e.ListenerDevice} ({e.ListenerDeviceMacAddress})");
         }
 
         private void OnDashButtonClicked(object sender, DashButtonClickedEventArgs e)
         {
-            AddToLog($"Button clicked: {e.DashButton.Description} ({e.DashButton.MacAddress}) " +
+            Log($"Button clicked: {e.DashButton.Description} ({e.DashButton.MacAddress}) " +
                 $"on {e.CaptureDeviceDescription} ({e.CaptureDeviceMacAddress})");
         }
 
-        private void AddToLog(string message)
+        private void Log(string message)
         {
             BeginInvoke((MethodInvoker)delegate
             {
-                LogTB.AppendText($"[{DateTime.Now.ToLongTimeString()}] " + message + Environment.NewLine);
+                DateTime now = DateTime.Now;
+                LogTB.AppendText($"[{now.ToShortDateString()} {now.ToLongTimeString()}] " + message + Environment.NewLine);
             });
         }
 
@@ -77,25 +80,28 @@ namespace YonatanMankovich.DashButtonManager
             DashButtonListener.OnActionExceptionThrown += OnActionExceptionThrown;
             DashButtonListener.OnExceptionThrown += OnExceptionThrown;
 
-            try
+            Log("Starting network listeners...");
+            Task.Run(() =>
             {
-                AddToLog("Starting network listeners...");
-                Task.Run(() => DashButtonListener.Start());
-            }
-            catch (DashButtonCoreException dbce)
-            {
-                AddToLog($"An error has occurred while starting the network listener: \n" + dbce.Message);
-            }
+                try
+                {
+                    DashButtonListener.Start();
+                }
+                catch (DashButtonCoreException dbce)
+                {
+                    Log($"An error has occurred while starting the network listener: \n" + dbce.Message);
+                }
+            });
         }
 
         private void OnExceptionThrown(object sender, ExceptionThrownEventArgs e)
         {
-            AddToLog("An error has occurred: " + e.Exception.Message);
+            Log("An error has occurred: " + e.Exception.Message);
         }
 
         private void OnActionExceptionThrown(object sender, ActionExceptionThrownEventArgs e)
         {
-            AddToLog($"An error has occurred while running the action: '{e.DashButton.ActionUrl}' " +
+            Log($"An error has occurred while running the action: '{e.DashButton.ActionUrl}' " +
                 $"for button '{e.DashButton.Description}'. \n{e.Exception.Message}");
         }
 
@@ -106,14 +112,17 @@ namespace YonatanMankovich.DashButtonManager
                 DataGridViewCellCollection rowCells = DashButtonsTable.Rows[e.RowIndex].Cells;
                 string buttonDescription = rowCells["Description"].Value?.ToString();
                 string url = rowCells["ActionUrl"].Value?.ToString();
-                try
+                if (!string.IsNullOrWhiteSpace(url))
                 {
-                    AddToLog($"Testing action for {buttonDescription} button.");
-                    await WebActionHelpers.SendGetRequestAsync(url);
-                }
-                catch (Exception ex)
-                {
-                    _ = Task.Run(() => AddToLog($"An error has occurred while running the action: '{url}' \n" + ex.Message));
+                    try
+                    {
+                        Log($"Testing action for {buttonDescription} button.");
+                        await WebActionHelpers.SendGetRequestAsync(url);
+                    }
+                    catch (Exception ex)
+                    {
+                        _ = Task.Run(() => Log($"An error has occurred while running the action: '{url}' \n" + ex.Message));
+                    }
                 }
             }
         }
@@ -121,7 +130,7 @@ namespace YonatanMankovich.DashButtonManager
         private void DashButtonsTable_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             DashButtonListener.SaveButtons();
-            AddToLog("Saved dash buttons table.");
+            Log("Saved dash buttons table.");
         }
 
         private void TrayNotifyIcon_MouseClick(object sender, MouseEventArgs e)
@@ -164,14 +173,14 @@ namespace YonatanMankovich.DashButtonManager
 
         private void OnMacAddressCaptured(object sender, MacAddressCapturedEventArgs e)
         {
-            AddToLog($"MAC address captured: {e.MacAddress} on {e.CaptureDeviceDescription} ({e.CaptureDeviceMacAddress})");
+            Log($"MAC address captured: {e.MacAddress} on {e.CaptureDeviceDescription} ({e.CaptureDeviceMacAddress})");
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Properties.Settings.Default.FormSize = new Size(Width, Height);
-            Properties.Settings.Default.SplitterDistance = HorizontalSplitContainer.SplitterDistance;
-            Properties.Settings.Default.Save();
+            FormSettings.FormSize = new Size(Width, Height);
+            FormSettings.SplitterDistance = HorizontalSplitContainer.SplitterDistance;
+            FormSettings.Save();
         }
     }
 }
