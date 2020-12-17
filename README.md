@@ -1,6 +1,6 @@
-# ![screenshot](DashButtonManagerSmallIcon.png) Dash Button Manager
+# ![icon](DashButtonManagerSmallIcon.png) Dash Button Manager
 
-A tool and a library to trigger custom, user defined actions upon pressing a dash button.
+A tool, a service, and a library to trigger custom, user defined actions upon pressing an Amazon Dash Button.
 
 Requires WinPcap to be installed on your computer for the tool to work. It can be downloaded here: https://winpcap.org
 
@@ -25,6 +25,22 @@ When a button is pressed, it sends multiple broadcast Address Resolution Protoco
 
 Read more about ARP here: https://en.wikipedia.org/wiki/Address_Resolution_Protocol
 
-## Screenshot
+## Dash Button Service vs. Dash Button Manager
 
-![screenshot](media/screenshot.png)
+| Dash Button Service \(Recommended\)                        | Dash Button Manager                     |
+|------------------------------------------------------------|-----------------------------------------|
+| Needs to be installed                                      | Can be run directly                     |
+| Runs as a service in the background                        | A user must be logged in for it to work |
+| Administrative rights are needed to add and modify buttons | No administrative rights are needed*    |
+
+\*Administrative rights are needed to install WinPcap if not already installed.
+
+## Screenshots
+
+### Dash Button Service Manager
+
+![dash-button-service-manager](media/dash-button-service-manager.png)
+
+### Dash Button Manager
+
+![dash-button-manager](media/dash-button-manager.png)
